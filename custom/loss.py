@@ -31,7 +31,7 @@ def D_loss(G, D, stage, reals, latents, batch_size):
     wass = -fake_loss.data - real_loss.data
     
     # gradient_penalty
-    eps = xp.random.uniform(0., 1., size=(reals.shape)).astype("f")
+    eps = xp.random.uniform(0., 1., size=batch_size).astype("f")[:, None, None, None]
     x_mid = eps * reals.data + (1.0 - eps) * x_fake.data
     
     x_mid_v = Variable(x_mid)
