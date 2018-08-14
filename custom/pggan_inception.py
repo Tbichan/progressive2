@@ -138,7 +138,7 @@ def main():
         imgs = np.transpose(imgs, (0, 3, 2, 1))
         img = 255 * 0.5 * (imgs[0]+1.0)
         
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = np.transpose(img, (2, 0, 1))
         ims.append(img)
         
