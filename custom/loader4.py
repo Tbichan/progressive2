@@ -66,7 +66,8 @@ class MultiLoader:
             #print(rand)
             if rand <= alpha:
                 # A
-                img = self.load_image(self.fileListA[self.indexA], width=width, height=height, rev=(np.random.randint(2) == 1) and mirror)
+                fp = self.fileListA[self.permA[self.indexA]]
+                img = self.load_image(fp, width=width, height=height, rev=(np.random.randint(2) == 1) and mirror)
                 res.append(img)
                 #res.append(self.fileListA[self.indexA])
                 self.indexA+=1
@@ -76,7 +77,8 @@ class MultiLoader:
                     print("train A suffle")
             else:
                 # B
-                img = self.load_image(self.fileListB[self.indexB], width=width, height=height, rev=(np.random.randint(2) == 1) and mirror)
+                fp = self.fileListB[self.permB[self.indexB]]
+                img = self.load_image(fp, width=width, height=height, rev=(np.random.randint(2) == 1) and mirror)
                 res.append(img)
                 #res.append(self.fileListB[self.indexB])
                 self.indexB+=1
