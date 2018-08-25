@@ -70,8 +70,9 @@ class MultiLoaderSenga:
             rev = (np.random.randint(2) == 1) and mirror
             if rand <= alpha:
                 # A
-                img = self.load_image(self.fileListA[self.indexA], width=width, height=height, rev=rev)
-                img_senga = self.load_image_senga(self.fileListA[self.indexA], width=width, height=height, rev=rev)
+                fp = self.fileListA[self.permA[self.indexA]]
+                img = self.load_image(fp, width=width, height=height, rev=rev)
+                img_senga = self.load_image_senga(fp, width=width, height=height, rev=rev)
                 img = np.concatenate([img, img_senga], axis=0)
                 res.append(img)
                 #res.append(self.fileListA[self.indexA])
@@ -82,8 +83,9 @@ class MultiLoaderSenga:
                     print("train A suffle")
             else:
                 # B
-                img = self.load_image(self.fileListB[self.indexB], width=width, height=height, rev=rev)
-                img_senga = self.load_image_senga(self.fileListB[self.indexB], width=width, height=height, rev=rev)
+                fp = self.fileListB[self.permB[self.indexB]]
+                img = self.load_image(fp, width=width, height=height, rev=rev)
+                img_senga = self.load_image_senga(fp, width=width, height=height, rev=rev)
                 img = np.concatenate([img, img_senga], axis=0)
                 res.append(img)
                 #res.append(self.fileListB[self.indexB])
