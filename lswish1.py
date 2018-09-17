@@ -26,7 +26,8 @@ class LeakySwish1(function_node.FunctionNode):
         self.retain_inputs((0,))
         
         half = x.dtype.type(0.5)
-        y = utils.force_array(numpy.tanh(x * half) * half + half)
+        s = y.dtype.type(0.2)
+        y = utils.force_array((1 - s) * (numpy.tanh(x * half) * half + half) + s)
         self.retain_outputs((0,))
         self._use_cudnn = False
         return y,
@@ -44,7 +45,7 @@ class LeakySwish1(function_node.FunctionNode):
             
             #self.retain_inputs((0,))
             y = cuda.elementwise(
-                'T x', 'T y', 'y = x * ((1 - 0.0) * (tanh(x * 0.5) * 0.5 + 0.5) + 0.0)',
+                'T x', 'T y', 'y = x * ((1 - 0.2) * (tanh(x * 0.5) * 0.5 + 0.5) + 0.2)',
                 'leaky_swish_fwd')(x)
             #self.retain_inputs((0,))
             self._use_cudnn = False
@@ -100,7 +101,7 @@ class LeakySwish1Grad(function_node.FunctionNode):
         else:
             gx = cuda.elementwise(
                 'T x, T y, T gy', 'T gx',
-                'gx = gy * ((1 - 0.0) * (y + x * y * (1 - y)) + 0.0)',
+                'gx = gy * ((1 - 0.2) * (y + x * y * (1 - y)) + 0.2)',
                 #'gx = gy * y * (1 - y)',
                 'leaky_swish_bwd')(x, y, gy)
         
