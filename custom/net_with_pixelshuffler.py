@@ -105,13 +105,14 @@ class DiscriminatorBlock(chainer.Chain):
             self.c0 = EqualizedConv2d(in_ch, in_ch, 3, 1, 1, slope=slope)
             self.c1 = EqualizedConv2d(in_ch, in_ch, 3, 1, 1, slope=slope)
             
-            self.conv1x1 = EqualizedConv2d(in_ch*4, out_ch, 1, 1, 0, slope=slope)
+            self.conv1x1 = EqualizedConv2d(in_ch, out_ch//4, 1, 1, 0, slope=slope)
             
     def __call__(self, x):
         h = F.leaky_relu(self.c0(x))
         h = F.leaky_relu(self.c1(h))
-        h = pixel_shuffler_down(h)
+        
         h = F.leaky_relu(self.conv1x1(h))
+        h = pixel_shuffler_down(h)
         return h
     
 def feature_vector_normalization(x, eps=1e-8):
