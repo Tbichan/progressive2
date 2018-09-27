@@ -114,11 +114,12 @@ class EqualizedConvolution2d(link.Link):
         self.dilate = _pair(dilate)
         self.out_channels = out_channels
         self.groups = int(groups)
+        
 
         with self.init_scope():
             W_initializer = initializers._get_initializer(initialW)
             self.W = variable.Parameter(W_initializer)
-            
+            self.scale_param = variable.Parameter(-1, (1,1))
             if in_channels is not None:
                 self._initialize_params(in_channels)
 
@@ -141,9 +142,13 @@ class EqualizedConvolution2d(link.Link):
         W_shape = (self.out_channels, int(in_channels / self.groups), kh, kw)
         
         self.W.initialize(W_shape)
+        
+        
+    def _initialize_scale(self):
         # div scale
-        self.scale = numpy.sqrt(numpy.mean(self.W.data**2))
-        self.W.data = self.W.data / self.scale
+        scale = (numpy.mean(self.W.data**2))**0.5
+        self.W.data = self.W.data / scale
+        self.scale_param.data[0,0] = scale
 
     def __call__(self, x):
         """Applies the convolution layer.
@@ -155,7 +160,10 @@ class EqualizedConvolution2d(link.Link):
         if self.W.data is None:
             self._initialize_params(x.shape[1])
             
-        y = self.scale*convolution_2d.convolution_2d(
+        if self.scale_param.data[0,0] < 0:
+            self._initialize_scale()
+        #print(self.scale_param.data)
+        y = self.scale_param.data*convolution_2d.convolution_2d(
             x, self.W, None, self.stride, self.pad, dilate=self.dilate,
             groups=self.groups)
         return bias(y,self.b)
@@ -239,6 +247,7 @@ class EqualizedLinear(link.Link):
         with self.init_scope():
             W_initializer = initializers._get_initializer(initialW)
             self.W = variable.Parameter(W_initializer)
+            self.scale_param = variable.Parameter(-1, (1,1))
             if in_size is not None:
                 self._initialize_params(in_size)
 
@@ -253,9 +262,16 @@ class EqualizedLinear(link.Link):
     def _initialize_params(self, in_size):
         self.W.initialize((self.out_size, in_size))
         # div scale
-        self.scale = numpy.sqrt(numpy.mean(self.W.data**2))
-        self.W.data = self.W.data / self.scale
-        
+        if self.scale_param.data[0,0] < 0:
+            self.scale = (numpy.mean(self.W.data**2))**0.5
+            self.W.data = self.W.data / self.scale
+            self.scale_param.data[0,0] = self.scale
+            
+    def _initialize_scale(self):
+        # div scale
+        scale = numpy.sqrt(numpy.mean(self.W.data**2))
+        self.W.data = self.W.data / scale
+        self.scale_param.data[0,0] = scale    
 
     def __call__(self, x):
         """Applies the linear layer.
@@ -267,8 +283,10 @@ class EqualizedLinear(link.Link):
         if self.W.data is None:
             in_size = functools.reduce(operator.mul, x.shape[1:], 1)
             self._initialize_params(in_size)
+        if self.scale_param.data[0,0] < 0:
+            self._initialize_scale()
         #return linear.linear(x, self.W, self.b)
-        y = self.scale * linear.linear(x, self.W, None)
+        y = self.scale_param.data * linear.linear(x, self.W, None)
         
         return bias(y,self.b)
 
